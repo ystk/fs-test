@@ -1,0 +1,8 @@
+#!/bin/sh -e
+# rc.local-sample for fs-test
+
+cd /opt/fs-test
+./test.pl
+
+exit 0
+

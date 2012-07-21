@@ -1,0 +1,92 @@
+fs-test
+=======
+
+Data reliability (consistency) test for file systems
+
+[Instructions]
+
+Log host name     : loghost  (IP: 10.0.0.1)
+Target host name  : target   (IP: 10.0.0.2)
+Target device node: /dev/sdb1 
+File system type  : Ext4 journal
+Directory name    : /home2
+
+0. Linux kernel preparation
+   0-1. Apply two patches under the patch directory
+        $ cd $KERNSRC
+        $ patch -p1 < $FSTESTSRC/patch/kernel-sys-c.patch
+   0-2. Build and install kernel
+
+1. Install required packages on target host and log host
+
+   Debian:
+     # apt-get install build-essentials
+     # apt-get install rsync
+     # apt-get install openssh-server openssh-client
+     # apt-get install perl
+
+2. Edit config.*
+
+3. Copy source code to target host and log host
+     
+     # rsync -atv fs-test root@target:/opt
+     # rsync -atv fs-test root@loghost:/opt
+
+4. Run make on each host
+
+     # make
+
+5. (loghost)  Start the log-server
+     # ./log-server
+
+6. (targethost)  Edit /etc/fstab (add the following line)
+     /dev/sdb1 /home2  ext4  defaults,sync,data=journal,barrier=1  0  2
+
+7. (targethost)  Make a new filesystem
+     # mkfs.ext4 /dev/sdb1
+
+8. (targethost)  Edit testcase.txt
+     [Change this value to 0]       6       deadline
+     5       deadline
+     6       deadline
+     5       noop
+     6       noop
+     5       cfq
+     6       cfq
+
+9. (targethost)  Add the following lines to the end of rc.local (Debian)
+
+     cd /opt/fs-test
+     ./test.pl
+
+10. (targethost)  Reboot
+
+
+  .... (Please wait for a while. It depends on number of test cases) ....
+
+
+11. (loghost)  Type 'q' to quit log-server
+
+12. (loghost)  Make directories to store logs
+    # mkdir /opt/result-check/ext4-j
+    # mkdir /opt/result-check/ext4-j/check
+    # mkdir /opt/result-check/ext4-j/log
+    # mkdir /opt/result-check/ext4-j/results
+
+12. (loghost)  Copy log into /opt/result-check/ext4-j/log
+    # cd /opt
+    # rsync -atv fs-test /opt/result-check/ext4-j/log/
+
+13. (targethost)  Copy results to loghost:/opt/result-check/ext4-j/results
+    # cd /opt
+    # rsync -atv fs-test /opt/result-check/ext4-j/results/
+
+14. (loghost)  Create synlinks in check directory
+    # cd /opt/result-check/ext4-j/check
+    # ln -s ../results/checker/* .
+    # cp ../results/config.pl .
+
+15. Run all.sh with an argument
+    # ./all.sh ext4journal
+
+16. Please check lstat-*

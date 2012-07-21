@@ -1,0 +1,8 @@
+0	6	deadline
+5	deadline
+6	deadline
+5	noop
+6	noop	
+5	cfq	
+6	cfq	
+

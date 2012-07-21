@@ -1,0 +1,14 @@
+diff --git a/kernel/sys.c b/kernel/sys.c
+index f88dadc..b21e1c7 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -421,6 +422,9 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+ 
+ 	mutex_lock(&reboot_mutex);
+ 	switch (cmd) {
++	case 0x01010101:
++		machine_emergency_restart();
++		break;
+ 	case LINUX_REBOOT_CMD_RESTART:
+ 		kernel_restart(NULL);
+ 		break;
